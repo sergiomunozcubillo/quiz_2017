@@ -187,3 +187,67 @@ exports.check = function (req, res, next) {
         answer: answer
     });
 };
+
+// GET /quizzes/randomplay 
+var score = 0;
+
+var almacenar = [];
+
+exports.randomplay = function (req, res, next) {
+
+        var answer = req.query.answer || '';
+
+	var array = models.Quiz.findAll();
+	
+	var arr = Promise.resolve(array);
+  
+        arr.then(function(array){			
+	var rnd = Math.floor((Math.random()*array.length+1));
+	var newId = models.Quiz.findById(Number(rnd));
+        var id = Promise.resolve(newId);
+        id.then(function(newId){
+	
+
+	for(var i=1; i<array.length; i++){
+      	if(almacenar[newId]!=-1){continue;} else {almacenar.push(newId);}     	
+	}
+	
+	if(score < array.length+1){
+
+	 res.render('quizzes/random_play', {
+	    quiz : newId,
+            answer: answer, 
+	    score: score 
+        });
+	
+	}   else {   
+	// random_more.ejs
+	 res.render('quizzes/random_nomore', { score: score });
+       
+     }
+   });
+ });
+};
+
+
+
+// GET /quizzes/randomcheck/:quizId?answer=respuesta
+exports.randomcheck = function (req, res, next) {
+    	
+    var answer = req.query.answer || "";
+  
+    var result = answer.toLowerCase().trim() === req.quiz.answer.toLowerCase().trim();
+   
+    if(result){
+    ++score;
+    } else {
+    score = 0;
+    }	
+
+    res.render('quizzes/random_result', {
+        quiz: req.quiz,
+        result: result,
+        answer: answer, 
+	score : score
+    });
+};
